@@ -23,7 +23,7 @@ title: "CSV Files Download"
         {% assign csv_files = site.static_files | where_exp:"file", "file.path contains '/csvs/'" %}
         {% for file in csv_files %}
             {% if file.extname == ".csv" %}
-                <li><a href="{{ file.path }}" download>{{ file.name }}</a></li>
+                <li><a href="{{ site.baseurl }}{{ file.path }}" download>{{ file.name }}</a></li>
             {% endif %}
         {% endfor %}
     </ul>
