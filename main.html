@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Download Generated CSV Files</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .csv-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .csv-list li {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+      justify-content: space-between;
+    }
+    .csv-list label {
+      flex: 1;
+      margin-left: 8px;
+    }
+    .download-link {
+      margin-left: 15px;
+      text-decoration: none;
+      color: blue;
+    }
+    #downloadBtn {
+      margin-top: 20px;
+      padding: 10px 15px;
+      font-size: 16px;
+      display: block;
+      width: 100%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Download CSV Files</h1>
+  <p>Select the CSV files you want to download:</p>
+  <ul class="csv-list">
+    <li>
+      <div>
+        <input type="checkbox" id="csv1" value="Fall_2023.csv">
+        <label for="csv1">Fall 2023</label>
+      </div>
+      <a class="download-link" href="csvs/Fall_2023.csv" download>Download</a>
+    </li>
+    <li>
+      <div>
+        <input type="checkbox" id="csv2" value="Spring_2024.csv">
+        <label for="csv2">Spring 2024</label>
+      </div>
+      <a class="download-link" href="csvs/Spring_2024.csv" download>Download</a>
+    </li>
+    <li>
+      <div>
+        <input type="checkbox" id="csv3" value="Final_Exam.csv">
+        <label for="csv3">Final Exam</label>
+      </div>
+      <a class="download-link" href="csvs/Final_Exam.csv" download>Download</a>
+    </li>
+    <!-- Add more CSV entries as needed -->
+  </ul>
+
+  <button id="downloadBtn">Download Selected CSVs as ZIP</button>
+
+  <!-- Include JSZip and JSZip Utils libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
+  <script>
+    document.getElementById("downloadBtn").addEventListener("click", function() {
+      const checkboxes = document.querySelectorAll(".csv-list input[type='checkbox']");
+      let selectedFiles = [];
+      checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          selectedFiles.push(checkbox.value);
+        }
+      });
+      
+      if(selectedFiles.length === 0) {
+        alert("Please select at least one CSV file to download.");
+        return;
+      }
+      
+      let zip = new JSZip();
+      let count = 0;
+      let zipFilename = "selected_csvs.zip";
+      
+      selectedFiles.forEach(filename => {
+        // Assumes CSV files are stored in the "csvs" folder
+        JSZipUtils.getBinaryContent("csvs/" + filename, function (err, data) {
+          if(err) {
+            alert("Error downloading " + filename);
+            return;
+          }
+          zip.file(filename, data, {binary:true});
+          count++;
+          if(count === selectedFiles.length) {
+            zip.generateAsync({type:"blob"}).then(function(content) {
+              let link = document.createElement("a");
+              link.href = window.URL.createObjectURL(content);
+              link.download = zipFilename;
+              link.click();
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
