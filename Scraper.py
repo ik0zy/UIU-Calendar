@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import re
+import os  # <-- added
 from datetime import datetime
 
 def sanitize_filename(s):
@@ -75,6 +76,11 @@ def parse_date_range(date_str):
     else:
         return parse_single_range(date_str)
 
+# Create a folder for CSV files.
+csv_folder = "csvs"  # <-- folder name changed to "csvs"
+if not os.path.exists(csv_folder):
+    os.makedirs(csv_folder)
+
 # URL of the UIU academic calendar page
 url = "https://www.uiu.ac.bd/academics/calendar/"
 
@@ -95,7 +101,8 @@ for details in soup.find_all("details"):
     if not summary_tag:
         continue
     summary_text = summary_tag.get_text(strip=True)
-    filename = sanitize_filename(summary_text) + ".csv"
+    # Save CSV files into the csvs folder.
+    filename = os.path.join(csv_folder, sanitize_filename(summary_text) + ".csv")
 
     events = []  # List to hold event rows for this summary
 
