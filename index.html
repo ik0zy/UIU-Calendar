@@ -1,0 +1,32 @@
+---
+layout: null
+title: "CSV Files Download"
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 10px 0; }
+        a { text-decoration: none; color: #0366d6; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>{{ page.title }}</h1>
+    <p>Click on a link below to download a CSV file:</p>
+    <ul>
+        {% assign csv_files = site.static_files | where_exp:"file", "file.path contains '/csvs/'" %}
+        {% for file in csv_files %}
+            {% if file.extname == ".csv" %}
+                <li><a href="{{ file.path }}" download>{{ file.name }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <p>If new CSV files are added into the "csvs" folder, they will appear here automatically.</p>
+</body>
+</html>
