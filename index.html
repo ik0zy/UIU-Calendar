@@ -7,26 +7,137 @@ title: "CSV Files Download"
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 2em; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin: 10px 0; }
-        a { text-decoration: none; color: #0366d6; }
-        a:hover { text-decoration: underline; }
+        :root {
+            --primary-color: #3498db;
+            --hover-color: #2980b9;
+            --text-color: #333;
+            --light-bg: #f5f8fa;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #4a69bd);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+        
+        h1 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .intro {
+            margin: 1rem 0 2rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .file-item {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .file-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .file-link {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .file-icon {
+            color: var(--primary-color);
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .file-list {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>{{ page.title }}</h1>
-    <p>Click on a link below to download a CSV file:</p>
-    <ul>
-        {% assign csv_files = site.static_files | where_exp:"file", "file.path contains '/csvs/'" %}
-        {% for file in csv_files %}
-            {% if file.extname == ".csv" %}
-                <li><a href="{{ site.baseurl }}{{ file.path }}" download>{{ file.name }}</a></li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-    <p>If new CSV files are added into the "csvs" folder, they will appear here automatically.</p>
+    <div class="container">
+        <header>
+            <h1>{{ page.title }}</h1>
+        </header>
+        
+        <p class="intro">Select a CSV file to download:</p>
+        
+        <ul class="file-list">
+            {% assign csv_files = site.static_files | where_exp:"file", "file.path contains '/csvs/'" %}
+            {% for file in csv_files %}
+                {% if file.extname == ".csv" %}
+                    <li class="file-item">
+                        <a href="{{ site.baseurl }}{{ file.path }}" download class="file-link">
+                            <span class="file-icon"><i class="fas fa-file-csv"></i></span>
+                            <span class="file-name">{{ file.name }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        
+        <footer>
+            <p>&copy; {% raw %}{{ site.time | date: '%Y' }}{% endraw %} CSV Files Download</p>
+        </footer>
+    </div>
 </body>
 </html>
