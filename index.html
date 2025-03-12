@@ -12,11 +12,12 @@ title: "CSV Files Download"
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #3498db;
-            --hover-color: #2980b9;
+            --primary-color: #4a6bff;
+            --hover-color: #3451d1;
             --text-color: #333;
-            --light-bg: #f5f8fa;
+            --light-bg: #f8f9fa;
             --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --card-border: rgba(0,0,0,0.08);
         }
         
         body {
@@ -25,6 +26,7 @@ title: "CSV Files Download"
             padding: 0;
             background-color: var(--light-bg);
             color: var(--text-color);
+            line-height: 1.6;
         }
         
         .container {
@@ -34,11 +36,11 @@ title: "CSV Files Download"
         }
         
         header {
-            background: linear-gradient(135deg, var(--primary-color), #4a69bd);
+            background: linear-gradient(135deg, var(--primary-color), #7a4aff);
             color: white;
-            padding: 2rem;
+            padding: 2.5rem;
             text-align: center;
-            border-radius: 0 0 10px 10px;
+            border-radius: 12px;
             margin-bottom: 2rem;
             box-shadow: var(--card-shadow);
         }
@@ -46,38 +48,41 @@ title: "CSV Files Download"
         h1 {
             margin: 0;
             font-weight: 600;
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
         }
         
         .intro {
-            margin: 1rem 0 2rem;
-            font-size: 1.1rem;
+            margin: 1.5rem 0 2rem;
+            font-size: 1.2rem;
             text-align: center;
+            color: #555;
         }
         
         .file-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
             list-style-type: none;
             padding: 0;
         }
         
         .file-item {
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: var(--card-shadow);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            margin-bottom: 1rem;
+            transition: all 0.25s ease;
+            border: 1px solid var(--card-border);
         }
         
         .file-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+            border-color: rgba(74, 107, 255, 0.2);
         }
         
         .file-link {
             display: flex;
             align-items: center;
-            padding: 1.2rem;
+            padding: 1.2rem 1.5rem;
             color: var(--text-color);
             text-decoration: none;
             font-weight: 500;
@@ -85,30 +90,57 @@ title: "CSV Files Download"
         
         .file-icon {
             color: var(--primary-color);
-            margin-right: 10px;
-            font-size: 1.5rem;
+            margin-right: 18px;
+            font-size: 2rem;
+            min-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .file-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 1.1rem;
+            word-break: break-word;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+        
+        .download-indicator {
+            margin-left: auto;
+            color: var(--hover-color);
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover .download-indicator {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .download-indicator i {
+            font-size: 1.3rem;
         }
         
         footer {
             text-align: center;
             margin-top: 3rem;
-            color: #666;
-            font-size: 0.9rem;
+            padding: 1rem 0;
         }
         
         @media (max-width: 600px) {
-            .file-list {
-                grid-template-columns: 1fr;
+            .file-link {
+                padding: 1rem;
             }
             
             header {
-                padding: 1.5rem;
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
             }
         }
     </style>
@@ -126,18 +158,16 @@ title: "CSV Files Download"
             {% for file in csv_files %}
                 {% if file.extname == ".csv" %}
                     <li class="file-item">
-                        <a href="{{ site.baseurl }}{{ file.path }}" download class="file-link">
+                        <a href="{{ site.baseurl }}{{ file.path }}" download class="file-link" title="{{ file.name }}">
                             <span class="file-icon"><i class="fas fa-file-csv"></i></span>
                             <span class="file-name">{{ file.name }}</span>
+                            <span class="download-indicator"><i class="fas fa-download"></i></span>
                         </a>
                     </li>
                 {% endif %}
             {% endfor %}
         </ul>
         
-        <footer>
-            <p>&copy; {% raw %}{{ site.time | date: '%Y' }}{% endraw %} CSV Files Download</p>
-        </footer>
     </div>
 </body>
 </html>
