@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import re
-import os  # <-- added
+import os
 from datetime import datetime
 
 def sanitize_filename(s):
