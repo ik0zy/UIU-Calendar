@@ -4,6 +4,7 @@ import csv
 import re
 import os
 from datetime import datetime
+import uuid
 
 def sanitize_filename(s):
     """
@@ -75,6 +76,108 @@ def parse_date_range(date_str):
         return first_start, last_end
     else:
         return parse_single_range(date_str)
+
+def generate_ics_content(events, calendar_name):
+    """
+    Generate ICS (iCalendar) file content from a list of event dictionaries.
+    Events should have keys: Subject, Start Date, Start Time, End Date, End Time, All Day Event, Description
+    """
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//UIU Calendar//Academic Calendar//EN",
+        f"X-WR-CALNAME:{calendar_name}",
+        "X-WR-TIMEZONE:Asia/Dhaka",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH"
+    ]
+    
+    for event in events:
+        # Generate unique ID for this event
+        event_uid = str(uuid.uuid4())
+        
+        # Get current timestamp for DTSTAMP
+        now = datetime.now(datetime.now().astimezone().tzinfo).astimezone().strftime("%Y%m%dT%H%M%SZ") if hasattr(datetime, 'UTC') else datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        
+        lines.append("BEGIN:VEVENT")
+        lines.append(f"UID:{event_uid}")
+        lines.append(f"DTSTAMP:{now}")
+        
+        # Add summary (event title)
+        summary = event.get("Subject", "").replace(',', '\\,').replace(';', '\\;').replace('\n', '\\n')
+        lines.append(f"SUMMARY:{summary}")
+        
+        # Handle dates
+        start_date_str = event.get("Start Date", "")
+        end_date_str = event.get("End Date", "")
+        start_time_str = event.get("Start Time", "")
+        end_time_str = event.get("End Time", "")
+        is_all_day = event.get("All Day Event", "True") == "True"
+        
+        try:
+            # Parse start date (MM/DD/YYYY format)
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, "%m/%d/%Y")
+                
+                if is_all_day:
+                    # All-day events use VALUE=DATE format (YYYYMMDD)
+                    lines.append(f"DTSTART;VALUE=DATE:{start_date.strftime('%Y%m%d')}")
+                    
+                    # For all-day events, end date is exclusive, so add 1 day
+                    if end_date_str:
+                        end_date = datetime.strptime(end_date_str, "%m/%d/%Y")
+                        # Add one day to make it exclusive
+                        from datetime import timedelta
+                        end_date = end_date + timedelta(days=1)
+                        lines.append(f"DTEND;VALUE=DATE:{end_date.strftime('%Y%m%d')}")
+                    else:
+                        # If no end date, use start date + 1 day
+                        from datetime import timedelta
+                        end_date = start_date + timedelta(days=1)
+                        lines.append(f"DTEND;VALUE=DATE:{end_date.strftime('%Y%m%d')}")
+                else:
+                    # Timed events - combine date and time
+                    # Note: Since we don't have timezone info in the CSV, we'll use local time
+                    if start_time_str:
+                        # Parse time and combine with date
+                        start_datetime_str = f"{start_date_str} {start_time_str}"
+                        # Try multiple time formats
+                        for time_fmt in ["%m/%d/%Y %I:%M %p", "%m/%d/%Y %H:%M"]:
+                            try:
+                                start_datetime = datetime.strptime(start_datetime_str, time_fmt)
+                                lines.append(f"DTSTART:{start_datetime.strftime('%Y%m%dT%H%M%S')}")
+                                break
+                            except ValueError:
+                                continue
+                    
+                    if end_date_str and end_time_str:
+                        end_datetime_str = f"{end_date_str} {end_time_str}"
+                        for time_fmt in ["%m/%d/%Y %I:%M %p", "%m/%d/%Y %H:%M"]:
+                            try:
+                                end_datetime = datetime.strptime(end_datetime_str, time_fmt)
+                                lines.append(f"DTEND:{end_datetime.strftime('%Y%m%dT%H%M%S')}")
+                                break
+                            except ValueError:
+                                continue
+        except ValueError as e:
+            # If date parsing fails, skip this event's dates
+            print(f"Warning: Could not parse date for event '{event.get('Subject', '')}': {e}")
+        
+        # Add description if available
+        description = event.get("Description", "").replace(',', '\\,').replace(';', '\\;').replace('\n', '\\n')
+        if description:
+            lines.append(f"DESCRIPTION:{description}")
+        
+        # Add location if available
+        location = event.get("Location", "").replace(',', '\\,').replace(';', '\\;').replace('\n', '\\n')
+        if location:
+            lines.append(f"LOCATION:{location}")
+        
+        lines.append("END:VEVENT")
+    
+    lines.append("END:VCALENDAR")
+    
+    return "\r\n".join(lines)
 
 # Create a folder for CSV files.
 csv_folder = "csvs"  # <-- folder name changed to "csvs"
@@ -161,8 +264,16 @@ for details in soup.find_all("details"):
 
     # Write out a separate CSV file for this summary if any events were found.
     if events:
+        # Write CSV file
         with open(filename, "w", newline="", encoding="utf-8") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fields)
             writer.writeheader()
             writer.writerows(events)
         print(f"CSV file '{filename}' created with {len(events)} events.")
+        
+        # Generate and write ICS file
+        ics_filename = filename.replace(".csv", ".ics")
+        ics_content = generate_ics_content(events, summary_text)
+        with open(ics_filename, "w", encoding="utf-8") as icsfile:
+            icsfile.write(ics_content)
+        print(f"ICS file '{ics_filename}' created with {len(events)} events.")
